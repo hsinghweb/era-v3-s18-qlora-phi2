@@ -71,7 +71,7 @@ def load_model_and_tokenizer():
 
 def prepare_dataset(tokenizer):
     # Load dataset based on configuration
-    dataset = load_dataset(config['dataset']['name'])
+    dataset = load_dataset(config['dataset']['name'], trust_remote_code=True)
     
     def tokenize_function(examples):
         return tokenizer(
