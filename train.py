@@ -1,5 +1,6 @@
 import os
 import torch
+import yaml
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
@@ -16,17 +17,21 @@ from datasets import load_dataset
 import wandb
 from tqdm import tqdm
 
-# Model and training configurations
-MODEL_NAME = "microsoft/phi-2"
-OUTPUT_DIR = "phi2-qlora-output"
-LORA_R = 8
-LORA_ALPHA = 32
-LORA_DROPOUT = 0.1
-LEARNING_RATE = 2e-4
-BATCH_SIZE = 4
-GRADIENT_ACCUMULATION_STEPS = 4
-NUM_EPOCHS = 3
-MAX_LENGTH = 512
+# Load configuration
+with open('config.yaml', 'r') as f:
+    config = yaml.safe_load(f)
+
+# Extract configurations
+MODEL_NAME = config['model']['name']
+OUTPUT_DIR = config['model']['output_dir']
+LORA_R = config['lora']['rank']
+LORA_ALPHA = config['lora']['alpha']
+LORA_DROPOUT = config['lora']['dropout']
+LEARNING_RATE = config['training']['learning_rate']
+BATCH_SIZE = config['training']['batch_size']
+GRADIENT_ACCUMULATION_STEPS = config['training']['gradient_accumulation_steps']
+NUM_EPOCHS = config['training']['num_epochs']
+MAX_LENGTH = config['training']['max_length']
 
 # Initialize wandb
 wandb.init(project="phi2-qlora-finetuning")
@@ -65,16 +70,15 @@ def load_model_and_tokenizer():
     return model, tokenizer
 
 def prepare_dataset(tokenizer):
-    # Load your dataset here
-    # This is an example using the tiny_shakespeare dataset
-    dataset = load_dataset("tiny_shakespeare")
+    # Load dataset based on configuration
+    dataset = load_dataset(config['dataset']['name'])
     
     def tokenize_function(examples):
         return tokenizer(
             examples["text"],
-            truncation=True,
+            truncation=config['dataset']['truncation'],
             max_length=MAX_LENGTH,
-            padding="max_length"
+            padding=config['dataset']['padding']
         )
     
     # Tokenize dataset
@@ -104,7 +108,7 @@ def main():
         save_strategy="epoch",
         evaluation_strategy="epoch",
         report_to="wandb",
-        fp16=True,
+        fp16=config['training']['fp16'],
         remove_unused_columns=False
     )
     

@@ -1,0 +1,29 @@
+# Model configuration
+model:
+  name: "microsoft/phi-2"
+  output_dir: "phi2-qlora-output"
+
+# LoRA parameters
+lora:
+  rank: 8
+  alpha: 32
+  dropout: 0.1
+  target_modules: ["q_proj", "k_proj", "v_proj", "dense"]
+
+# Training parameters
+training:
+  learning_rate: 2.0e-4
+  batch_size: 4
+  gradient_accumulation_steps: 4
+  num_epochs: 3
+  max_length: 512
+  fp16: true
+  logging_steps: 10
+  save_strategy: "epoch"
+  evaluation_strategy: "epoch"
+
+# Dataset parameters
+dataset:
+  name: "tiny_shakespeare"
+  padding: "max_length"
+  truncation: true
